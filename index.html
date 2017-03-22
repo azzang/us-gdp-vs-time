@@ -105,9 +105,10 @@
         .attr('width', function(d) { return barWidth; })
         .attr('height', function(d) { return height - y(d[1]); })
         .on('mouseover', function(d) {
-          tooltip.style('top', Number(this.getAttribute('y')) + 10 + 'px');
-          tooltip.style('left', Number(this.getAttribute('x')) + margin.left + 'px');
-          tooltip.style('display', 'inline');
+          tooltip.style('top', Number(this.getAttribute('y')) + 10 + 'px')
+                 .style('left', Number(this.getAttribute('x')) + margin.left + 'px')
+                 .style('display', 'inline');
+                 
           setTooltipText(d);
         }).on('mouseout', function(d) {
           tooltip.style('display', 'none');
