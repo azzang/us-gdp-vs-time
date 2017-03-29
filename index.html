@@ -36,124 +36,121 @@
 <body>
   <script>
 
-    var svg = d3.select('body').append('svg');
+  var svg = d3.select('body').append('svg');
 
-    var tooltip = d3.select('body').append('div')
-      .attr('class', 'tooltip');
+  var tooltip = d3.select('body').append('div').attr('class', 'tooltip');
 
-    var svgWidth = Math.min(960, window.innerWidth) || 960;
-    var svgHeight = svgWidth * (500 / 960);
+  var svgWidth = Math.min(960, window.innerWidth) || 960;
+  var svgHeight = svgWidth * (500 / 960);
 
-    var tooltipDate = tooltip.append('div');
-    var tooltipGDP = tooltip.append('div');
+  var tooltipDate = tooltip.append('div');
+  var tooltipGDP = tooltip.append('div');
 
-    svg.attr('width', svgWidth)
-      .attr('height', svgHeight);
+  var margin = { top: 20, right: 20, bottom: 30, left: 40 };
+  var width = svgWidth - margin.left - margin.right;
+  var height = svgHeight - margin.top - margin.bottom;
 
-    var margin = { top: 20, right: 20, bottom: 30, left: 40 };
-    var width = svgWidth - margin.left - margin.right;
-    var height = svgHeight - margin.top - margin.bottom;
+  var x = d3.scaleTime().range([0, width]);
+  var y = d3.scaleLinear().rangeRound([height, 0]);
 
-    var x = d3.scaleTime().range([0, width]);
-    var y = d3.scaleLinear().rangeRound([height, 0]);
+  var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-    var g = svg.append('g')
-      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+  svg.attr('width', svgWidth).attr('height', svgHeight);
 
-    d3.json('GDP-data.json', function(err, res) {
-      if (err) throw err;
+  d3.json('GDP-data.json', function (err, res) {
+    if (err) throw err;
 
-      var data = res.data;
-      var barWidth = width / data.length;
+    var gdps = res.data;
+    var barWidth = width / gdps.length;
 
-      // transform date strings into date objects
+    // transform date strings into date objects
 
-      data.forEach(function(d) {
-        d[0] = new Date(d[0]);
-      });
-
-      // define domains
-
-      x.domain([data[0][0], data[data.length - 1][0]]);
-      y.domain([0, d3.max(data, function(d) { return d[1]; })]);
-
-      // draw axes
-
-      g.append('g')
-        .attr('class', 'axis')
-        .attr('transform', 'translate(' + barWidth + ',' + height + ')')
-        .call(d3.axisBottom(x));
-
-      g.append('g')
-        .attr('class', 'axis')
-        .call(d3.axisLeft(y).ticks(10))
-        .append('text')
-        .attr('transform', 'rotate(-90)')
-        .attr('y', 6)
-        .attr('dy', '0.71em')
-        .attr('text-anchor', 'end');
-
-      // draw bars
-
-      g.selectAll('.bar')
-        .data(data)
-        .enter()
-        .append('rect')
-        .attr('class', 'bar')
-        .attr('x', function(d) { return x(d[0]); })
-        .attr('y', function(d) { return y(d[1]); })
-        .attr('width', function(d) { return barWidth; })
-        .attr('height', function(d) { return height - y(d[1]); })
-        .on('mouseover', function(d) {
-          tooltip.style('top', Number(this.getAttribute('y')) + 10 + 'px')
-                 .style('left', Number(this.getAttribute('x')) + margin.left + 'px')
-                 .style('display', 'inline');
-                 
-          setTooltipText(d);
-        }).on('mouseout', function(d) {
-          tooltip.style('display', 'none');
-        });
-
-      // label axes
-
-      g.append('text')
-        .attr('class', 'x label')
-        .attr('text-anchor', 'end')
-        .attr('x', width)
-        .attr('y', height - 6)
-        .text('Year');
-
-      g.append('text')
-        .attr('class', 'label')
-        .attr('text-anchor', 'end')
-        .attr('y', 6)
-        .attr('dy', '.75em')
-        .attr('transform', 'rotate(-90)')
-        .text('GDP (US$ - Billions)');
+    gdps.forEach(function (d) {
+      d[0] = new Date(d[0]);
     });
 
-    function transformMonth(month) {
-      switch(month) {
-        case 2:
-          return 'March';
-        case 5:
-          return 'June';
-        case 8:
-          return 'September';
-        case 11:
-          return 'December'
-      }
-    }
+    // define domains
 
-    function setTooltipText(d) {
-      var date = d[0];
-      var quarter = transformMonth(date.getMonth());
-      var year = date.getFullYear();
-      var gdp = '$' + d[1] + ' Billion';
-      tooltipDate.text(quarter + ' ' + year + ' -');
-      tooltipGDP.text(gdp);
-    }
+    x.domain([gdps[0][0], gdps[gdps.length - 1][0]]);
+    y.domain([0, d3.max(gdps, function (d) { return d[1]; })]);
 
+    // draw axes
+
+    g.append('g')
+      .attr('class', 'axis')
+      .attr('transform', 'translate(' + barWidth + ',' + height + ')')
+      .call(d3.axisBottom(x));
+
+    g.append('g')
+      .attr('class', 'axis')
+      .call(d3.axisLeft(y).ticks(10))
+      .append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('y', 6)
+      .attr('dy', '0.71em')
+      .attr('text-anchor', 'end');
+
+    // draw bars
+
+    g.selectAll('.bar')
+      .data(gdps)
+      .enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('x', function (d) { return x(d[0]); })
+      .attr('y', function (d) { return y(d[1]); })
+      .attr('width', barWidth)
+      .attr('height', function (d) { return height - y(d[1]); })
+      .on('mouseover', function (d) {
+        tooltip.style('top', Number(this.getAttribute('y')) + 10 + 'px')
+               .style('left', Number(this.getAttribute('x')) + margin.left + 'px')
+               .style('display', 'inline');
+
+        setTooltipText(d);
+      })
+      .on('mouseout', function () {
+        tooltip.style('display', 'none');
+      });
+
+    // label axes
+
+    g.append('text')
+      .attr('class', 'x label')
+      .attr('text-anchor', 'end')
+      .attr('x', width)
+      .attr('y', height - 6)
+      .text('Year');
+
+    g.append('text')
+      .attr('class', 'label')
+      .attr('text-anchor', 'end')
+      .attr('y', 6)
+      .attr('dy', '.75em')
+      .attr('transform', 'rotate(-90)')
+      .text('GDP (US$ - Billions)');
+  });
+
+  function transformMonth(month) {
+    switch (month) {
+      case 2:
+        return 'March';
+      case 5:
+        return 'June';
+      case 8:
+        return 'September';
+      default:
+        return 'December';
+    }
+  }
+
+  function setTooltipText(d) {
+    var date = d[0];
+    var quarter = transformMonth(date.getMonth());
+    var year = date.getFullYear();
+    var gdp = '$' + d[1] + ' Billion';
+    tooltipDate.text(quarter + ' ' + year + ' -');
+    tooltipGDP.text(gdp);
+  }
   </script>
 </body>
 </html>
